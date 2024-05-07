@@ -40,6 +40,6 @@ Example JSON config:
 ## Setup
 
 1. Download & install [Python](https://www.python.org/downloads/) if you haven't already.
-2. Run 'setup.bat' to install dependencies.
+2. Run 'setup.bat' (Windows) or 'setup.sh' (Unix) to install dependencies.
 
 Written by Ben DeWeerd.
