@@ -37,4 +37,9 @@ Example JSON config:
 | period_time | When using "periodic" trigger, specify time in seconds between logs. |
 | print_timestamp | Enable (1) / Disable (0) timestamp field in output log. |
 
+## Setup
+
+1. Download & install [Python](https://www.python.org/downloads/) if you haven't already.
+2. Run 'setup.bat' to install dependencies.
+
 Written by Ben DeWeerd.
