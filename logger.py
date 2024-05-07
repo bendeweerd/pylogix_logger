@@ -5,7 +5,6 @@ import json
 import time
 from datetime import datetime
 from time import localtime, strftime
-import keyboard
 import csv
 
 # construct argument parser, parse arguments
