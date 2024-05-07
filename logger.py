@@ -91,24 +91,25 @@ try:
 
             # periodic trigger: 
             case "periodic":
-                print("starting with periodic trigger - press q to quit logging")
+                print("starting with periodic trigger - press ctrl + c to quit logging")
                 previous_time = 0
-                while not keyboard.is_pressed('q'):
+                while True:
                     current_time = time.time()
                     if current_time - previous_time > c_period_time:
                         data = GetData(comm)
                         UpdateCSV(data, c_output_filename)
                         print('.', end='', flush=True)
                         previous_time = current_time
+                
 
             # change trigger - update whenever trigger tag is changed
             case "change":
-                print("starting with change trigger - press q to quit logging")
+                print("starting with change trigger - press ctrl + c to quit logging")
                 previous_triggerdata = comm.Read(c_trigger_tag)
                 if previous_triggerdata.Status != 'Success':
                     raise
                 previous_val = previous_triggerdata.Value
-                while not keyboard.is_pressed('q'):
+                while True:
                     current_triggerdata = comm.Read(c_trigger_tag)
                     if current_triggerdata.Status != 'Success':
                         raise
@@ -125,5 +126,8 @@ try:
 
         print('\nexiting...')
 
-except:
-    print("\nerror encountered. exiting...")
+except KeyboardInterrupt:
+    print("\nexiting...")
+except Exception as e:
+    print(f"\nerror encountered: {type(e).__name__} - {e}. exiting...")
+
