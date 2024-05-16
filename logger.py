@@ -33,8 +33,10 @@ try:
     c_trigger_type = cfg["trigger_type"]
     c_trigger_tag = cfg["trigger_tag"]
     c_period_time = cfg["period_time"]
+    c_compare_condition = cfg["compare_condition"]
+    c_compare_cutoff = cfg["compare_cutoff"]
     c_print_timestamp = cfg["print_timestamp"]
-    if not(isinstance(c_ip, str)) or not(isinstance(c_period_time, (int, float))) or not(isinstance(c_print_timestamp, int)):
+    if not(isinstance(c_ip, str)) or not(isinstance(c_period_time, (int, float))) or not(isinstance(c_print_timestamp, int)) or not(isinstance(c_compare_condition, str)) or not(isinstance(c_compare_cutoff, (int, float))):
         raise
 except:
     print("invalid config - exiting...")
@@ -116,6 +118,55 @@ try:
                         writer.writerow(data)
                         print('.', end='', flush=True)
                         previous_val = current_val
+
+            # compare trigger - update whenever trigger tag fulfills specified conditions
+            case "compare":
+                print("starting with comparison trigger - press ctrl + c to quit logging")
+                previous_triggerdata = comm.Read(c_trigger_tag)
+                while True:
+                    current_triggerdata = comm.Read(c_trigger_tag).Value
+                    
+                    match c_compare_condition:
+                        case "grt":
+                            if current_triggerdata > c_compare_cutoff:
+                                data = GetData(comm)
+                                writer.writerow(data)
+                                print('.', end='', flush=True)
+
+                        case "geq":
+                            if current_triggerdata >= c_compare_cutoff:
+                                data = GetData(comm)
+                                writer.writerow(data)
+                                print('.', end='', flush=True)
+
+                        case "les":
+                            if current_triggerdata < c_compare_cutoff:
+                                data = GetData(comm)
+                                writer.writerow(data)
+                                print('.', end='', flush=True)
+
+                        case "leq":
+                            if current_triggerdata <= c_compare_cutoff:
+                                data = GetData(comm)
+                                writer.writerow(data)
+                                print('.', end='', flush=True) 
+
+                        case "neq":
+                            if current_triggerdata != c_compare_cutoff:
+                                data = GetData(comm)
+                                writer.writerow(data)
+                                print('.', end='', flush=True)
+
+                        case "equ":
+                            if current_triggerdata == c_compare_cutoff:
+                                data = GetData(comm)
+                                writer.writerow(data)
+                                print('.', end='', flush=True)
+
+                        case _:
+                            print("unknown comparison condition")
+                            break
+
 
             # unknown trigger
             case _:
