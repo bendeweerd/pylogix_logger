@@ -1,10 +1,10 @@
 # Pylogix Data Logger
 
-This program uses the [Pylogix](https://github.com/dmroeder/pylogix) library to connect to & monitor tags on connected Allen-Bradley PLCs.
+This program uses the [Pylogix](https://github.com/dmroeder/pylogix) library to monitor tags on connected Allen-Bradley PLCs and log the data to a csv file.
 
 Example usage: 
 
-`python logger.py -c {config_file.json} -f {output_file.json}`
+`python logger.py -c {config_file.json} -f {output_file.csv}`
 
 Example JSON config:
 ```
