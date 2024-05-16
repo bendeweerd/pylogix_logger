@@ -53,12 +53,6 @@ def ReadString(tag, comm):
         value = ''.join([chr(d) for d in data])
     return value
 
-# utility function - update CSV by appending provided row
-def UpdateCSV(row, filename):
-    with open(filename, 'a', newline='') as csv_file:
-        writer = csv.writer(csv_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(row)
-
 # utility function - get row of data from PLC
 def GetData(comm):
     results = []
@@ -78,12 +72,16 @@ def GetData(comm):
 
 # main function - open comms to PLC, record data until exit requested or error encountered
 try:
+    csv_file = open(c_output_filename, 'a', newline='')
+    writer = csv.writer(csv_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+
     with PLC(c_ip) as comm:
 
         if c_print_timestamp:
             c_headers = ['Timestamp'] + c_headers
 
-        UpdateCSV(c_headers, c_output_filename)     # start CSV with header row
+        # start csv with header row
+        writer.writerow(c_headers)
         
         # define behavior based on trigger type chosen
         match c_trigger_type:
@@ -96,7 +94,7 @@ try:
                     current_time = time.time()
                     if current_time - previous_time > c_period_time:
                         data = GetData(comm)
-                        UpdateCSV(data, c_output_filename)
+                        writer.writerow(data)
                         print('.', end='', flush=True)
                         previous_time = current_time
                 
@@ -115,7 +113,7 @@ try:
                     current_val = current_triggerdata.Value
                     if current_val != previous_val:
                         data = GetData(comm)
-                        UpdateCSV(data, c_output_filename)
+                        writer.writerow(data)
                         print('.', end='', flush=True)
                         previous_val = current_val
 
@@ -130,3 +128,6 @@ except KeyboardInterrupt:
 except Exception as e:
     print(f"\nerror encountered: {type(e).__name__} - {e}. exiting...")
 
+# cleanup
+print(f"output stored here: {c_output_filename}")
+csv_file.close()
