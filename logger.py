@@ -42,6 +42,14 @@ except:
     print("invalid config - exiting...")
     exit()
 
+# custom exception for tag data not present
+class TagError(Exception):
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return self.value
+
 # utility function - return timestamp string
 def GetTimestamp():
     return (datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
@@ -65,7 +73,7 @@ def GetData(comm):
     tagdata = comm.Read(c_tags)
     for t in range(len(c_tags)):
         if tagdata[t].Status != 'Success':
-            raise
+            raise TagError(f"failed to read tag: {c_tags[t]}")
         if isinstance(tagdata[t].Value, (bytes, bytearray, str)):
             results.append(ReadString(c_tags[t], comm))
         else:
@@ -106,12 +114,12 @@ try:
                 print("starting with change trigger - press ctrl + c to quit logging")
                 previous_triggerdata = comm.Read(c_trigger_tag)
                 if previous_triggerdata.Status != 'Success':
-                    raise
+                    raise TagError(f"failed to read tag: {c_trigger_tag}")
                 previous_val = previous_triggerdata.Value
                 while True:
                     current_triggerdata = comm.Read(c_trigger_tag)
                     if current_triggerdata.Status != 'Success':
-                        raise
+                        raise TagError(f"failed to read tag: {c_trigger_tag}")
                     current_val = current_triggerdata.Value
                     if current_val != previous_val:
                         data = GetData(comm)
@@ -124,7 +132,7 @@ try:
                 print("starting with comparison trigger - press ctrl + c to quit logging")
                 previous_triggerdata = comm.Read(c_trigger_tag)
                 if previous_triggerdata.Status != 'Success':
-                    raise
+                    raise TagError(f"failed to read tag: {c_trigger_tag}")
                 while True:
                     current_triggerdata = comm.Read(c_trigger_tag).Value
                     
