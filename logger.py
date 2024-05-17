@@ -123,6 +123,8 @@ try:
             case "compare":
                 print("starting with comparison trigger - press ctrl + c to quit logging")
                 previous_triggerdata = comm.Read(c_trigger_tag)
+                if previous_triggerdata.Status != 'Success':
+                    raise
                 while True:
                     current_triggerdata = comm.Read(c_trigger_tag).Value
                     
