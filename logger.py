@@ -44,7 +44,7 @@ except:
 
 # utility function - return timestamp string
 def GetTimestamp():
-    return (datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))[:-3]
+    return (datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"))
 
 # utility function - parse string from PLC string tag
 def ReadString(tag, comm):
@@ -62,14 +62,14 @@ def GetData(comm):
     if(c_print_timestamp):
         results.append(GetTimestamp())
 
-    for i in range(len(c_tags)):
-        tagdata = comm.Read(c_tags[i])
-        if tagdata.Status != 'Success':
+    tagdata = comm.Read(c_tags)
+    for t in range(len(c_tags)):
+        if tagdata[t].Status != 'Success':
             raise
-        if isinstance(tagdata.Value, (bytes, bytearray, str)):
-            results.append(ReadString(c_tags[i], comm))
+        if isinstance(tagdata[t].Value, (bytes, bytearray, str)):
+            results.append(ReadString(c_tags[t], comm))
         else:
-            results.append(tagdata.Value)
+            results.append(tagdata[t].Value)
     return results
 
 # main function - open comms to PLC, record data until exit requested or error encountered
