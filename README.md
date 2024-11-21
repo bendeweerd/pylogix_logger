@@ -25,6 +25,7 @@ This program uses the [Pylogix](https://github.com/dmroeder/pylogix) library to 
 | compare_condition | Specify when using "compare" trigger. Options: "grt", "geq", "les", "leq", "neq", "equ". |
 | compare_cutoff | Value to compare the selected tag to. |
 | print_timestamp | Enable (1) / Disable (0) timestamp field in output log. |
+| live_update | Enable (1) / Disable (0) live output updates. Live updates show data immediately but reduce performance. |
 
 #### Example JSON config - comparison trigger:
 ```
@@ -47,7 +48,8 @@ This program uses the [Pylogix](https://github.com/dmroeder/pylogix) library to 
     "period_time": 0,
     "compare_condition": "les",
     "compare_cutoff": 1866.5625,
-    "print_timestamp": 1
+    "print_timestamp": 1,
+    "live_update": 0
 }
 ```
 
@@ -72,7 +74,8 @@ This program uses the [Pylogix](https://github.com/dmroeder/pylogix) library to 
     "period_time": 0.25,
     "compare_condition": "",
     "compare_cutoff": 0,
-    "print_timestamp": 1
+    "print_timestamp": 1,
+    "live_update": 1
 }
 ```
 
@@ -93,8 +96,11 @@ This program uses the [Pylogix](https://github.com/dmroeder/pylogix) library to 
     "period_time": 0,
     "compare_condition": "",
     "compare_cutoff": 0,
-    "print_timestamp": 1
+    "print_timestamp": 1,
+    "live_update": 0
 }
 ```
+
+***
 
 Written by Ben DeWeerd.

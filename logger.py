@@ -36,6 +36,7 @@ try:
     c_compare_condition = cfg["compare_condition"]
     c_compare_cutoff = cfg["compare_cutoff"]
     c_print_timestamp = cfg["print_timestamp"]
+    c_live_update = cfg["live_update"]
     if not(isinstance(c_ip, str)) or not(isinstance(c_period_time, (int, float))) or not(isinstance(c_print_timestamp, int)) or not(isinstance(c_compare_condition, str)) or not(isinstance(c_compare_cutoff, (int, float))):
         raise
 except:
@@ -80,10 +81,17 @@ def GetData(comm):
             results.append(tagdata[t].Value)
     return results
 
+# utility function - update CSV by appending provided row. Only used with real-time updates; slower performance
+def LiveUpdate(row, filename):
+    with open(filename, 'a', newline='') as csv_file:
+        realtime_writer = csv.writer(csv_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        realtime_writer.writerow(row)
+
 # main function - open comms to PLC, record data until exit requested or error encountered
 try:
-    csv_file = open(c_output_filename, 'a', newline='')
-    writer = csv.writer(csv_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    if not c_live_update:
+        csv_file = open(c_output_filename, 'a', newline='')
+        writer = csv.writer(csv_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
     with PLC(c_ip) as comm:
 
@@ -91,7 +99,10 @@ try:
             c_headers = ['Timestamp'] + c_headers
 
         # start csv with header row
-        writer.writerow(c_headers)
+        if c_live_update:
+            LiveUpdate(c_headers, c_output_filename)
+        else:
+            writer.writerow(c_headers)
         
         # define behavior based on trigger type chosen
         match c_trigger_type:
@@ -104,7 +115,10 @@ try:
                     current_time = time.time()
                     if current_time - previous_time > c_period_time:
                         data = GetData(comm)
-                        writer.writerow(data)
+                        if c_live_update:
+                            LiveUpdate(data, c_output_filename)
+                        else:
+                            writer.writerow(data)
                         print('.', end='', flush=True)
                         previous_time = current_time
                 
@@ -123,7 +137,10 @@ try:
                     current_val = current_triggerdata.Value
                     if current_val != previous_val:
                         data = GetData(comm)
-                        writer.writerow(data)
+                        if c_live_update:
+                            LiveUpdate(data, c_output_filename)
+                        else:
+                            writer.writerow(data)
                         print('.', end='', flush=True)
                         previous_val = current_val
 
@@ -140,37 +157,55 @@ try:
                         case "grt":
                             if current_triggerdata > c_compare_cutoff:
                                 data = GetData(comm)
-                                writer.writerow(data)
+                                if c_live_update:
+                                    LiveUpdate(data, c_output_filename)
+                                else:
+                                    writer.writerow(data)
                                 print('.', end='', flush=True)
 
                         case "geq":
                             if current_triggerdata >= c_compare_cutoff:
                                 data = GetData(comm)
-                                writer.writerow(data)
+                                if c_live_update:
+                                    LiveUpdate(data, c_output_filename)
+                                else:
+                                    writer.writerow(data)
                                 print('.', end='', flush=True)
 
                         case "les":
                             if current_triggerdata < c_compare_cutoff:
                                 data = GetData(comm)
-                                writer.writerow(data)
+                                if c_live_update:
+                                    LiveUpdate(data, c_output_filename)
+                                else:
+                                    writer.writerow(data)
                                 print('.', end='', flush=True)
 
                         case "leq":
                             if current_triggerdata <= c_compare_cutoff:
                                 data = GetData(comm)
-                                writer.writerow(data)
+                                if c_live_update:
+                                    LiveUpdate(data, c_output_filename)
+                                else:
+                                    writer.writerow(data)
                                 print('.', end='', flush=True) 
 
                         case "neq":
                             if current_triggerdata != c_compare_cutoff:
                                 data = GetData(comm)
-                                writer.writerow(data)
+                                if c_live_update:
+                                    LiveUpdate(data, c_output_filename)
+                                else:
+                                    writer.writerow(data)
                                 print('.', end='', flush=True)
 
                         case "equ":
                             if current_triggerdata == c_compare_cutoff:
                                 data = GetData(comm)
-                                writer.writerow(data)
+                                if c_live_update:
+                                    LiveUpdate(data, c_output_filename)
+                                else:
+                                    writer.writerow(data)
                                 print('.', end='', flush=True)
 
                         case _:
@@ -191,4 +226,5 @@ except Exception as e:
 
 # cleanup
 print(f"output stored here: {c_output_filename}")
-csv_file.close()
+if not c_live_update:
+    csv_file.close()
