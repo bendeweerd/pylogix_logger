@@ -36,7 +36,8 @@ try:
     c_compare_cutoff = cfg["compare_cutoff"]
     c_print_timestamp = cfg["print_timestamp"]
     c_live_update = cfg["live_update"]
-    if not(isinstance(c_ip, str)) or not(isinstance(c_period_time, (int, float))) or not(isinstance(c_print_timestamp, int)) or not(isinstance(c_compare_condition, str)) or not(isinstance(c_compare_cutoff, (int, float))):
+    c_pre_trigger_count = cfg["pre_trigger_count"]
+    if not(isinstance(c_ip, str)) or not(isinstance(c_period_time, (int, float))) or not(isinstance(c_print_timestamp, int)) or not(isinstance(c_compare_condition, str)) or not(isinstance(c_compare_cutoff, (int, float))) or not(isinstance(c_pre_trigger_count, int)):
         raise
 except:
     print("invalid config - exiting...")
@@ -49,6 +50,15 @@ class TagError(Exception):
 
     def __str__(self):
         return self.value
+
+# history entries for pre-trigger viewing
+pre_trigger_history = []
+
+# add latest entry to history, remove old entries
+def updateHistory(entry):
+    pre_trigger_history.append(entry)
+    if len(pre_trigger_history) > c_pre_trigger_count:
+        pre_trigger_history.pop(0)
 
 # utility function - return timestamp string
 def GetTimestamp():
@@ -134,13 +144,16 @@ try:
                     if current_triggerdata.Status != 'Success':
                         raise TagError(f"failed to read tag: {c_trigger_tag}")
                     current_val = current_triggerdata.Value
+                    updateHistory(GetData(comm))
                     if current_val != previous_val:
-                        data = GetData(comm)
-                        if c_live_update:
-                            LiveUpdate(data, c_output_filename)
-                        else:
-                            writer.writerow(data)
-                        print('.', end='', flush=True)
+                        # data = GetData(comm)
+                        for entry in pre_trigger_history:
+                            if c_live_update:
+                                LiveUpdate(entry, c_output_filename)
+                                # LiveUpdate(data, c_output_filename)
+                            else:
+                                writer.writerow(entry)
+                            print('.', end='', flush=True)
                         previous_val = current_val
 
             # compare trigger - update whenever trigger tag fulfills specified conditions
