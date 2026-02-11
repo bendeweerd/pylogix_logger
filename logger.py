@@ -102,11 +102,11 @@ try:
             LiveUpdate(c_headers, c_output_filename)
         else:
             writer.writerow(c_headers)
-        
+
         # define behavior based on trigger type chosen
         match c_trigger_type:
 
-            # periodic trigger: 
+            # periodic trigger:
             case "periodic":
                 print("starting with periodic trigger - press ctrl + c to quit logging")
                 previous_time = 0
@@ -120,7 +120,6 @@ try:
                             writer.writerow(data)
                         print('.', end='', flush=True)
                         previous_time = current_time
-                
 
             # change trigger - update whenever trigger tag is changed
             case "change":
@@ -143,6 +142,50 @@ try:
                         print('.', end='', flush=True)
                         previous_val = current_val
 
+            # rising edge trigger - update whenever trigger tag increases in value
+            case "rising":
+                print("starting with rising edge trigger - press ctrl + c to quit logging")
+                previous_triggerdata = comm.Read(c_trigger_tag)
+                if previous_triggerdata.Status != 'Success':
+                    raise TagError(f"failed to read tag: {c_trigger_tag}")
+                previous_val = previous_triggerdata.Value
+                while True:
+                    current_triggerdata = comm.Read(c_trigger_tag)
+                    if current_triggerdata.Status != 'Success':
+                        raise TagError(f"failed to read tag: {c_trigger_tag}")
+                    current_val = current_triggerdata.Value
+                    if current_val > previous_val:
+                        data = GetData(comm)
+                        if c_live_update:
+                            LiveUpdate(data, c_output_filename)
+                        else:
+                            writer.writerow(data)
+                        print('.', end='', flush=True)
+                    # for rise & fall triggers, update previous data every time, not just when writing to file
+                    previous_val = current_val
+
+            # falling edge trigger - update whenever trigger dag decreases in value
+            case "falling":
+                print("starting with falling edge trigger - press ctrl + c to quit logging")
+                previous_triggerdata = comm.Read(c_trigger_tag)
+                if previous_triggerdata.Status != 'Success':
+                    raise TagError(f"failed to read tag: {c_trigger_tag}")
+                previous_val = previous_triggerdata.Value
+                while True:
+                    current_triggerdata = comm.Read(c_trigger_tag)
+                    if current_triggerdata.Status != 'Success':
+                        raise TagError(f"failed to read tag: {c_trigger_tag}")
+                    current_val = current_triggerdata.Value
+                    if current_val < previous_val:
+                        data = GetData(comm)
+                        if c_live_update:
+                            LiveUpdate(data, c_output_filename)
+                        else:
+                            writer.writerow(data)
+                        print('.', end='', flush=True)
+                    # for rise & fall triggers, update previous data every time, not just when writing to file
+                    previous_val = current_val
+
             # compare trigger - update whenever trigger tag fulfills specified conditions
             case "compare":
                 print("starting with comparison trigger - press ctrl + c to quit logging")
@@ -151,66 +194,38 @@ try:
                     raise TagError(f"failed to read tag: {c_trigger_tag}")
                 while True:
                     current_triggerdata = comm.Read(c_trigger_tag).Value
-                    
+
+                    condition_met = False
                     match c_compare_condition:
                         case "grt":
                             if current_triggerdata > c_compare_cutoff:
-                                data = GetData(comm)
-                                if c_live_update:
-                                    LiveUpdate(data, c_output_filename)
-                                else:
-                                    writer.writerow(data)
-                                print('.', end='', flush=True)
-
+                                condition_met = True
                         case "geq":
                             if current_triggerdata >= c_compare_cutoff:
-                                data = GetData(comm)
-                                if c_live_update:
-                                    LiveUpdate(data, c_output_filename)
-                                else:
-                                    writer.writerow(data)
-                                print('.', end='', flush=True)
-
+                                condition_met = True
                         case "les":
                             if current_triggerdata < c_compare_cutoff:
-                                data = GetData(comm)
-                                if c_live_update:
-                                    LiveUpdate(data, c_output_filename)
-                                else:
-                                    writer.writerow(data)
-                                print('.', end='', flush=True)
-
+                                condition_met = True
                         case "leq":
                             if current_triggerdata <= c_compare_cutoff:
-                                data = GetData(comm)
-                                if c_live_update:
-                                    LiveUpdate(data, c_output_filename)
-                                else:
-                                    writer.writerow(data)
-                                print('.', end='', flush=True) 
-
+                                condition_met = True
                         case "neq":
                             if current_triggerdata != c_compare_cutoff:
-                                data = GetData(comm)
-                                if c_live_update:
-                                    LiveUpdate(data, c_output_filename)
-                                else:
-                                    writer.writerow(data)
-                                print('.', end='', flush=True)
-
+                                condition_met = True
                         case "equ":
                             if current_triggerdata == c_compare_cutoff:
-                                data = GetData(comm)
-                                if c_live_update:
-                                    LiveUpdate(data, c_output_filename)
-                                else:
-                                    writer.writerow(data)
-                                print('.', end='', flush=True)
-
+                                condition_met = True
                         case _:
                             print("unknown comparison condition")
                             break
 
+                    if condition_met:
+                        data = GetData(comm)
+                        if c_live_update:
+                            LiveUpdate(data, c_output_filename)
+                        else:
+                            writer.writerow(data)
+                        print('.', end='', flush=True)
 
             # unknown trigger
             case _:

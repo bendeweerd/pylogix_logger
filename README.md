@@ -19,8 +19,8 @@ This program uses the [Pylogix](https://github.com/dmroeder/pylogix) library to 
 | ip | Specify the IP address of the connected controller. |
 | tags | List the PLC tags you want to log. Specify program name for program-scope tags.|
 | headers | List headers for the output CSV file. |
-| trigger_type | Options: "change", "periodic", "compare". |
-| trigger_tag | When using "change" or "compare" trigger, specify the tag to monitor/compare. |
+| trigger_type | Options: "change", "periodic", "compare", "rising", "falling". |
+| trigger_tag | When using "change", "compare", "rising", or "falling" trigger, specify the tag to monitor/compare. |
 | period_time | When using "periodic" trigger, specify time in seconds between logs. |
 | compare_condition | Specify when using "compare" trigger. Options: "grt", "geq", "les", "leq", "neq", "equ". |
 | compare_cutoff | Value to compare the selected tag to. |
